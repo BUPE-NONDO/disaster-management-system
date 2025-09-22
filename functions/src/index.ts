@@ -11,11 +11,12 @@ app.use(cors({ origin: true }));
 app.use(express.json());
 
 // Middleware to verify authentication
-const authenticateUser = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+const authenticateUser = async (req: express.Request, res: express.Response, next: express.NextFunction): Promise<void> => {
   try {
     const token = req.headers.authorization?.split('Bearer ')[1];
     if (!token) {
-      return res.status(401).json({ error: 'No token provided' });
+      res.status(401).json({ error: 'No token provided' });
+      return;
     }
 
     const decodedToken = await admin.auth().verifyIdToken(token);
@@ -37,7 +38,7 @@ declare global {
 }
 
 // Get all incidents
-app.get('/incidents', authenticateUser, async (req, res) => {
+app.get('/incidents', authenticateUser, async (req, res): Promise<void> => {
   try {
     const { status, severity, type, limit = 50 } = req.query;
     
@@ -69,15 +70,16 @@ app.get('/incidents', authenticateUser, async (req, res) => {
 });
 
 // Create new incident
-app.post('/incidents', authenticateUser, async (req, res) => {
+app.post('/incidents', authenticateUser, async (req, res): Promise<void> => {
   try {
     const { type, title, description, severity, location, coordinates } = req.body;
     
     // Validation
     if (!type || !title || !severity || !location) {
-      return res.status(400).json({
+      res.status(400).json({
         error: 'Missing required fields: type, title, severity, location'
       });
+      return;
     }
     
     const incidentData = {
@@ -110,7 +112,7 @@ app.post('/incidents', authenticateUser, async (req, res) => {
 });
 
 // Update incident
-app.put('/incidents/:id', authenticateUser, async (req, res) => {
+app.put('/incidents/:id', authenticateUser, async (req, res): Promise<void> => {
   try {
     const { id } = req.params;
     const updates = req.body;
@@ -123,7 +125,8 @@ app.put('/incidents/:id', authenticateUser, async (req, res) => {
     // Get updated document
     const doc = await admin.firestore().collection('incidents').doc(id).get();
     if (!doc.exists) {
-      return res.status(404).json({ error: 'Incident not found' });
+      res.status(404).json({ error: 'Incident not found' });
+      return;
     }
     
     const incident = { id: doc.id, ...doc.data() };
@@ -135,7 +138,7 @@ app.put('/incidents/:id', authenticateUser, async (req, res) => {
 });
 
 // Get all resources
-app.get('/resources', authenticateUser, async (req, res) => {
+app.get('/resources', authenticateUser, async (req, res): Promise<void> => {
   try {
     const { type, available } = req.query;
     
@@ -163,13 +166,14 @@ app.get('/resources', authenticateUser, async (req, res) => {
 });
 
 // Create resource allocation
-app.post('/resources/:id/allocate', authenticateUser, async (req, res) => {
+app.post('/resources/:id/allocate', authenticateUser, async (req, res): Promise<void> => {
   try {
     const { id } = req.params;
     const { incidentId, quantity } = req.body;
     
     if (!incidentId || !quantity || quantity <= 0) {
-      return res.status(400).json({ error: 'Invalid allocation data' });
+      res.status(400).json({ error: 'Invalid allocation data' });
+      return;
     }
     
     // Use transaction to ensure consistency
