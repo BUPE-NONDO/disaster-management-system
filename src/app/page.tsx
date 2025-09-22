@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { AlertTriangle, Users, MapPin, Activity, Plus, LogOut, User } from 'lucide-react';
+import { AlertTriangle, Users, MapPin, Activity, Plus, LogOut, User, Settings, Shield, BarChart3 } from 'lucide-react';
 import IncidentForm from '@/components/IncidentForm';
 import LoginForm from '@/components/LoginForm';
 import ResourceManagement from '@/components/ResourceManagement';
@@ -9,9 +9,11 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import { useAuth } from '@/contexts/AuthContext';
 import { incidentService, resourceService, Incident, Resource } from '@/lib/firestore';
 import { toast } from '@/components/Toast';
+import { useRoleCheck } from '@/components/RoleBasedComponent';
 
 export default function Dashboard() {
   const { user, userProfile, loading: authLoading, signOut } = useAuth();
+  const { isAdmin, isCoordinator } = useRoleCheck();
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [resources, setResources] = useState<Resource[]>([]);
   const [showIncidentForm, setShowIncidentForm] = useState(false);
@@ -109,21 +111,55 @@ export default function Dashboard() {
                 <span>Report Incident</span>
               </button>
               
-              <div className="flex items-center space-x-3">
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <User className="h-4 w-4" />
-                  <span>{userProfile?.name || user.email}</span>
-                  <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                    {userProfile?.role}
-                  </span>
+              <div className="flex items-center space-x-4">
+                {/* Navigation Links */}
+                <div className="hidden md:flex items-center space-x-4">
+                  <a
+                    href="/profile"
+                    className="flex items-center space-x-1 text-gray-600 hover:text-gray-900"
+                  >
+                    <Settings className="h-4 w-4" />
+                    <span>Profile</span>
+                  </a>
+                  
+                  {isAdmin() && (
+                    <a
+                      href="/admin/users"
+                      className="flex items-center space-x-1 text-gray-600 hover:text-gray-900"
+                    >
+                      <Users className="h-4 w-4" />
+                      <span>Users</span>
+                    </a>
+                  )}
+                  
+                  {isCoordinator() && (
+                    <a
+                      href="/admin/activity"
+                      className="flex items-center space-x-1 text-gray-600 hover:text-gray-900"
+                    >
+                      <BarChart3 className="h-4 w-4" />
+                      <span>Activity</span>
+                    </a>
+                  )}
                 </div>
-                <button
-                  onClick={handleSignOut}
-                  className="flex items-center space-x-1 text-gray-500 hover:text-gray-700"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span>Sign Out</span>
-                </button>
+
+                {/* User Info */}
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-2 text-sm text-gray-600">
+                    <User className="h-4 w-4" />
+                    <span>{userProfile?.name || user.email}</span>
+                    <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                      {userProfile?.role}
+                    </span>
+                  </div>
+                  <button
+                    onClick={handleSignOut}
+                    className="flex items-center space-x-1 text-gray-500 hover:text-gray-700"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>

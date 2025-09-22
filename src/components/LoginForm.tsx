@@ -2,8 +2,10 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { AlertCircle, Eye, EyeOff, LogIn, UserPlus } from 'lucide-react';
+import { AlertCircle, Eye, EyeOff, LogIn, UserPlus, Key } from 'lucide-react';
 import { toast } from '@/components/Toast';
+import PasswordReset from './PasswordReset';
+import EmailVerification from './EmailVerification';
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -20,8 +22,10 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
 
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, user } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,11 +36,12 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
       if (isLogin) {
         await signIn(formData.email, formData.password);
         toast.success('Welcome Back!', 'You have been successfully signed in.');
+        onSuccess?.();
       } else {
         await signUp(formData.email, formData.password, formData.name, formData.role);
         toast.success('Account Created', 'Your account has been created successfully.');
+        setShowEmailVerification(true);
       }
-      onSuccess?.();
     } catch (error: any) {
       const errorMessage = error.message || 'An error occurred';
       setError(errorMessage);
@@ -50,6 +55,16 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
+
+  // Show password reset form
+  if (showPasswordReset) {
+    return <PasswordReset onBack={() => setShowPasswordReset(false)} />;
+  }
+
+  // Show email verification form
+  if (showEmailVerification) {
+    return <EmailVerification />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -197,7 +212,18 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
               </button>
             </div>
 
-            <div className="text-center">
+            <div className="text-center space-y-2">
+              {isLogin && (
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordReset(true)}
+                  className="text-sm text-blue-600 hover:text-blue-500 flex items-center justify-center space-x-1"
+                >
+                  <Key className="h-3 w-3" />
+                  <span>Forgot your password?</span>
+                </button>
+              )}
+              
               <button
                 type="button"
                 onClick={() => {
