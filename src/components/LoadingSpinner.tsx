@@ -21,7 +21,7 @@ export default function LoadingSpinner({
 
   return (
     <div className={`flex flex-col items-center justify-center ${className}`}>
-      <Activity className={`${sizeClasses[size]} animate-spin text-blue-500 mb-2`} />
+      <Activity data-testid="loading-spinner" className={`${sizeClasses[size]} animate-spin text-blue-500 mb-2`} />
       {text && (
         <p className="text-gray-600 text-sm">{text}</p>
       )}

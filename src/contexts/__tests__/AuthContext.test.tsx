@@ -3,7 +3,7 @@ import { AuthProvider, useAuth } from '../AuthContext'
 import { authService } from '../../../lib/auth'
 
 // Mock the auth service
-jest.mock('@/lib/auth', () => ({
+jest.mock('../../../lib/auth', () => ({
   authService: {
     onAuthStateChanged: jest.fn(),
     signIn: jest.fn(),
