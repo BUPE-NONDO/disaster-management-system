@@ -1,78 +1,94 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { AlertTriangle, Users, MapPin, Activity, Plus } from 'lucide-react';
+import { AlertTriangle, Users, MapPin, Activity, Plus, LogOut, User } from 'lucide-react';
 import IncidentForm from '@/components/IncidentForm';
+import LoginForm from '@/components/LoginForm';
+import ResourceManagement from '@/components/ResourceManagement';
+import LoadingSpinner from '@/components/LoadingSpinner';
+import { useAuth } from '@/contexts/AuthContext';
+import { incidentService, resourceService, Incident, Resource } from '@/lib/firestore';
+import { toast } from '@/components/Toast';
 
 export default function Dashboard() {
-  const [incidents, setIncidents] = useState([]);
-  const [resources, setResources] = useState([]);
+  const { user, userProfile, loading: authLoading, signOut } = useAuth();
+  const [incidents, setIncidents] = useState<Incident[]>([]);
+  const [resources, setResources] = useState<Resource[]>([]);
   const [showIncidentForm, setShowIncidentForm] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (user) {
+      // Set up real-time listeners
+      const unsubscribeIncidents = incidentService.subscribeToIncidents((incidents) => {
+        setIncidents(incidents);
+        setLoading(false);
+      });
 
-  const fetchData = async () => {
-    try {
-      const [incidentsRes, resourcesRes] = await Promise.all([
-        fetch('/api/incidents'),
-        fetch('/api/resources')
-      ]);
+      const unsubscribeResources = resourceService.subscribeToResources((resources) => {
+        setResources(resources);
+      });
 
-      const incidentsData = await incidentsRes.json();
-      const resourcesData = await resourcesRes.json();
-
-      setIncidents(incidentsData.incidents || []);
-      setResources(resourcesData.resources || []);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    } finally {
+      return () => {
+        unsubscribeIncidents();
+        unsubscribeResources();
+      };
+    } else {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   const handleIncidentSubmit = async (incidentData: any) => {
     try {
-      const response = await fetch('/api/incidents', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(incidentData),
+      await incidentService.createIncident({
+        ...incidentData,
+        reportedBy: user!.uid
       });
-
-      if (response.ok) {
-        setShowIncidentForm(false);
-        fetchData(); // Refresh data
-      } else {
-        const error = await response.json();
-        console.error('Error creating incident:', error);
-      }
+      setShowIncidentForm(false);
+      toast.success('Incident Reported', 'Your incident has been successfully reported and is being reviewed.');
     } catch (error) {
       console.error('Error submitting incident:', error);
+      toast.error('Failed to Report Incident', 'There was an error reporting the incident. Please try again.');
     }
   };
 
   const getActiveIncidentsCount = () => {
-    return incidents.filter((incident: any) => 
+    return incidents.filter((incident) => 
       incident.status === 'REPORTED' || incident.status === 'RESPONDING'
     ).length;
   };
 
   const getAvailableTeamsCount = () => {
-    const personnelResource = resources.find((r: any) => r.type === 'PERSONNEL');
+    const personnelResource = resources.find((r) => r.type === 'PERSONNEL');
     return personnelResource ? personnelResource.available : 0;
   };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast.success('Signed Out', 'You have been successfully signed out.');
+    } catch (error) {
+      console.error('Error signing out:', error);
+      toast.error('Sign Out Failed', 'There was an error signing out. Please try again.');
+    }
+  };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <LoadingSpinner size="lg" text="Initializing..." />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <LoginForm />;
+  }
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <Activity className="h-8 w-8 animate-spin text-blue-500 mx-auto mb-4" />
-          <p className="text-gray-600">Loading dashboard...</p>
-        </div>
+        <LoadingSpinner size="lg" text="Loading dashboard..." />
       </div>
     );
   }
@@ -92,7 +108,23 @@ export default function Dashboard() {
                 <Plus className="h-4 w-4" />
                 <span>Report Incident</span>
               </button>
-              <span className="text-sm text-gray-500">Emergency Operations Center</span>
+              
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2 text-sm text-gray-600">
+                  <User className="h-4 w-4" />
+                  <span>{userProfile?.name || user.email}</span>
+                  <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                    {userProfile?.role}
+                  </span>
+                </div>
+                <button
+                  onClick={handleSignOut}
+                  className="flex items-center space-x-1 text-gray-500 hover:text-gray-700"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Sign Out</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -132,7 +164,7 @@ export default function Dashboard() {
               Recent Incidents
             </h2>
             <div className="space-y-4">
-              {incidents.slice(0, 5).map((incident: any) => (
+              {incidents.slice(0, 5).map((incident) => (
                 <div key={incident.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
                   <div>
                     <p className="font-medium text-gray-900">{incident.title || incident.type}</p>
@@ -147,7 +179,10 @@ export default function Dashboard() {
                       {incident.severity}
                     </span>
                     <p className="text-xs text-gray-500 mt-1">
-                      {new Date(incident.reportedAt).toLocaleString()}
+                      {incident.reportedAt?.toDate ? 
+                        incident.reportedAt.toDate().toLocaleString() : 
+                        new Date(incident.reportedAt).toLocaleString()
+                      }
                     </p>
                   </div>
                 </div>
@@ -155,27 +190,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Resource Allocation
-            </h2>
-            <div className="space-y-4">
-              {resources.map((item: any) => (
-                <div key={item.id} className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm font-medium text-gray-700">{item.name}</span>
-                    <span className="text-sm text-gray-500">{item.available}/{item.total}</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-blue-600 h-2 rounded-full" 
-                      style={{ width: `${(item.available / item.total) * 100}%` }}
-                    ></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <ResourceManagement />
         </div>
       </main>
 
