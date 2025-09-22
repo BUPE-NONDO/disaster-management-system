@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@/contexts/AuthContext';
-import { UserProfile } from '@/lib/auth';
+import { UserProfile } from '../../lib/auth';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';

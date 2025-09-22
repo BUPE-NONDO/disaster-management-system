@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@/contexts/AuthContext';
-import { UserProfile } from '@/lib/auth';
+import { UserProfile } from '../../lib/auth';
 
 interface RoleBasedComponentProps {
   children: React.ReactNode;

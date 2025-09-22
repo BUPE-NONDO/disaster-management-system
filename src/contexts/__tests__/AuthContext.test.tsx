@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import { AuthProvider, useAuth } from '../AuthContext'
-import { authService } from '@/lib/auth'
+import { authService } from '../../../lib/auth'
 
 // Mock the auth service
 jest.mock('@/lib/auth', () => ({

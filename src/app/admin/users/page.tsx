@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { UserProfile } from '@/lib/auth';
+import { UserProfile } from '../../../../lib/auth';
 import { Users, Search, Filter, MoreVertical, Edit, Trash2, Shield, Mail, Calendar } from 'lucide-react';
 import { toast } from '@/components/Toast';
 import LoadingSpinner from '@/components/LoadingSpinner';

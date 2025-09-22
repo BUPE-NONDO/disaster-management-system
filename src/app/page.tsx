@@ -7,7 +7,7 @@ import LoginForm from '@/components/LoginForm';
 import ResourceManagement from '@/components/ResourceManagement';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { useAuth } from '@/contexts/AuthContext';
-import { incidentService, resourceService, Incident, Resource } from '@/lib/firestore';
+import { incidentService, resourceService, Incident, Resource } from '../../lib/firestore';
 import { toast } from '@/components/Toast';
 import { useRoleCheck } from '@/components/RoleBasedComponent';
 
@@ -217,7 +217,7 @@ export default function Dashboard() {
                     <p className="text-xs text-gray-500 mt-1">
                       {incident.reportedAt?.toDate ? 
                         incident.reportedAt.toDate().toLocaleString() : 
-                        new Date(incident.reportedAt).toLocaleString()
+                        incident.reportedAt ? new Date(incident.reportedAt.seconds * 1000).toLocaleString() : 'Unknown'
                       }
                     </p>
                   </div>

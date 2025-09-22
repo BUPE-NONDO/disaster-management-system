@@ -28,13 +28,11 @@ if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_USE_EMULAT
       connectAuthEmulator(auth, 'http://localhost:9099');
     }
     
-    if (!db._delegate._databaseId.projectId.includes('demo-')) {
-      connectFirestoreEmulator(db, 'localhost', 8080);
-    }
+    // Connect to Firestore emulator
+    connectFirestoreEmulator(db, 'localhost', 8080);
     
-    if (!functions.emulator) {
-      connectFunctionsEmulator(functions, 'localhost', 5001);
-    }
+    // Connect to Functions emulator
+    connectFunctionsEmulator(functions, 'localhost', 5001);
   } catch (error) {
     console.warn('Failed to connect to emulators:', error);
   }

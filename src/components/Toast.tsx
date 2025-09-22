@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { CheckCircle, XCircle, AlertTriangle, Info, X } from 'lucide-react';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
@@ -27,6 +27,11 @@ function ToastComponent({ toast, onRemove }: ToastProps) {
     return () => clearTimeout(timer);
   }, []);
 
+  const handleRemove = useCallback(() => {
+    setIsVisible(false);
+    setTimeout(() => onRemove(toast.id), 300);
+  }, [onRemove, toast.id]);
+
   useEffect(() => {
     if (toast.duration) {
       const timer = setTimeout(() => {
@@ -34,12 +39,7 @@ function ToastComponent({ toast, onRemove }: ToastProps) {
       }, toast.duration);
       return () => clearTimeout(timer);
     }
-  }, [toast.duration]);
-
-  const handleRemove = () => {
-    setIsVisible(false);
-    setTimeout(() => onRemove(toast.id), 300);
-  };
+  }, [toast.duration, handleRemove]);
 
   const icons = {
     success: CheckCircle,

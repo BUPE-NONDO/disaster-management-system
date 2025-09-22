@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { incidentService } from '@/lib/firestore';
+import { incidentService } from '../../../../lib/firestore';
 
 export async function GET(request: NextRequest) {
   try {

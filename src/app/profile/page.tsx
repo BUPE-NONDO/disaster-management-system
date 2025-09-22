@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { User, Mail, Shield, Calendar, Save, Edit, X } from 'lucide-react';
-import { authService, UserProfile } from '@/lib/auth';
+import { authService, UserProfile } from '../../../lib/auth';
 import { toast } from '@/components/Toast';
 import LoadingSpinner from '@/components/LoadingSpinner';
 

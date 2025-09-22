@@ -7,7 +7,7 @@ on:
     branches: [main, develop]
 
 env:
-  NODE_VERSION: '18'
+  NODE_VERSION: '22'
 
 jobs:
   test:
@@ -68,7 +68,12 @@ jobs:
           NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
         
       - name: Export static files
-        run: npm run export || echo "Export not configured"
+        run: |
+          if npm run | grep -q "export"; then
+            npm run export
+          else
+            echo "Export script not configured, skipping..."
+          fi
         
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Users, Truck, Shield, Wrench } from 'lucide-react';
-import { resourceService, Resource } from '@/lib/firestore';
+import { resourceService, Resource } from '../../lib/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/Toast';
 
