@@ -12,6 +12,15 @@ const nextConfig = {
     NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
     NEXT_PUBLIC_FIREBASE_APP_ID: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
   },
+  webpack: (config) => {
+    // Exclude Firebase Functions from Next.js build
+    config.externals = config.externals || [];
+    config.externals.push({
+      'firebase-functions': 'commonjs firebase-functions',
+      'firebase-admin': 'commonjs firebase-admin',
+    });
+    return config;
+  },
 };
 
 module.exports = nextConfig;
